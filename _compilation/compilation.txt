@@ -1,0 +1,5 @@
+--------------THE BUILD COMMAND FOR THE COMPILATION--------------------
+go build -o "compilation.exe" _compilation/compilation.go
+
+-----------------------THE COMMAND IN TOTAL-----------------------------
+cl /Fochessbot.obj /W4 /EHsc window.cpp user32.lib /link /out:chessbot.exe /SUBSYSTEM:CONSOLE /ENTRY:wWinMainCRTStartup
