@@ -26,6 +26,7 @@ public:
 
   Piece* GetPiece() {
     return piece;
+    
   }
 
   int GetColor() {
