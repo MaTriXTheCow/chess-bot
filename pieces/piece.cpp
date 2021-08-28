@@ -49,7 +49,9 @@ public:
   }
 
   int GetValue();
-  bool GetColor();
+  bool GetColor() {
+    return color;
+  }
 
   Square* GetSquare() {
     return square;
@@ -72,18 +74,29 @@ public:
   }
 
   virtual int DrawPixel(Coordinates pixelCoord) {
-    if(!pixelCoord.IsInBounds(80,80)) {
+    if(!pixelCoord.IsInBounds(0,0,80,80)) {
       return -1;
     }
 
-    Pixel** pieceImage = PPMimages[type*2 + color];
+    Pixel** pieceImage = PPMimages[type*2 + (int)(!color)];
+
+    bool isSquareClicked = GetSquare() -> IsClicked();
 
     int r = pieceImage[79-pixelCoord.y][pixelCoord.x].r;
     int g = pieceImage[79-pixelCoord.y][pixelCoord.x].g;
     int b = pieceImage[79-pixelCoord.y][pixelCoord.x].b;
 
     if(IsTransparent(r,g,b)) {
-      return GetSquare() -> GetColor();
+      int squareColor = GetSquare() -> GetColor();
+
+      if(isSquareClicked) {
+        if(squareColor == whiteSq) return 0xf9f788;
+
+        return 0xb7cb44;
+      }
+
+
+      return squareColor;
     }
 
     return (r << 16) + (g << 8) + b;

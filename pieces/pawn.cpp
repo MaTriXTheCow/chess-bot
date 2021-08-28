@@ -15,5 +15,7 @@ public:
     isFirstMove = true;
   };
 
+  Coordinates* GetLegalMoves() {
 
+  }
 };

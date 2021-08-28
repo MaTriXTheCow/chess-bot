@@ -6,6 +6,8 @@ private:
 
   unsigned int turn;
 
+  Square* clicked;
+
   void initBoard() {
     char startingBoard[8][8] = {
       {'R','B','N','K','Q','N','B','R'},
@@ -27,7 +29,7 @@ private:
 
         if(pieceChar == ' ') continue;
 
-        bool colorPiece = ((piecesCount >= 16) == playingAs);
+        bool colorPiece = ((piecesCount < 16) == playingAs);
 
         boardArray[r][c] -> SetPiece(Piece::MakePieceFromChar(pieceChar, colorPiece, boardArray[r][c]));
 
@@ -41,6 +43,8 @@ public:
     isCheck = false;
     isCheckMate = false;
     turn = 1;
+
+    clicked = nullptr;
 
     initBoard();
   }
@@ -62,6 +66,16 @@ public:
     int col = pos.x/80;
 
     return GetSquare(row, col);
+  }
+
+  Square* GetClicked() {
+    return clicked;
+  }
+
+  void SetClicked(Square* sq) {
+    if(clicked != nullptr) clicked -> ToggleClicked();
+
+    clicked = (sq -> ToggleClicked()) ? sq : nullptr;
   }
 
   void PrintBoard() {

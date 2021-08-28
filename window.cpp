@@ -1,6 +1,8 @@
-const int whiteSq = 0x769656;
-const int blackSq = 0xEBEBD3;
+const int blackSq = 0x769656;
+const int whiteSq = 0xEBEBD3;
 bool playingAs;
+
+char numberToLettter[8] = {'a','b','c','d','e','f','g','h'};
 
 // INCLUDES
 
@@ -17,16 +19,17 @@ bool playingAs;
 #include <string>
 #include <map>
 
-// MY FILES
-
+// MY FILESW
 #include "helpers/pixel.cpp"
 #include "helpers/coordinates.cpp"
-#include "helpers/click.cpp"
 
 #include "helpers/ppmImageReader.cpp"
 
 #include "helpers/square.cpp"
 #include "pieces/piece.cpp"
+
+#include "helpers/board.cpp"
+Board* boardG;
 
 #include "pieces/pawn.cpp"
 #include "pieces/rook.cpp"
@@ -37,10 +40,7 @@ bool playingAs;
 
 #include "helpers/pieceExtra.cpp"
 
-#include "helpers/board.cpp"
-
 bool running = true;
-WindowClick* click = new WindowClick();
 
 BITMAPINFO buffer_bitmap_info;
 
@@ -81,8 +81,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         } break;
 
         case WM_LBUTTONUP: {
-          click -> SetClicked();
-          click -> SetCoordinates(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+          Square* clickedSq = boardG -> GetSquareFromCoord(Coordinates{GET_X_LPARAM(lParam), buffer_height - GET_Y_LPARAM(lParam)});
+
+          boardG -> SetClicked(clickedSq);
 
         } break;
     }
@@ -90,28 +91,16 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
-inline void Simulate(Board* board) {
+inline void Simulate() {
   // Simulate
 
   unsigned int* pixel = (unsigned int*) buffer_memory;
 
-  Coordinates clickCoords = {-1,-1};
-
-  if(click -> CurrentClick()) {
-    clickCoords = click -> GetCoordinates();
-  }
-
   for(int y = 0; y < buffer_height; y++) {
     for(int x = 0; x < buffer_width; x++) {
       Coordinates pixelCoords = {x,y};
-      Square* sq = board -> GetSquareFromCoord(pixelCoords);
+      Square* sq = boardG -> GetSquareFromCoord(pixelCoords);
       int sqClr = sq -> GetColor();
-
-      if(pixelCoords == clickCoords) {
-        std::cout << clickCoords.x << " " << clickCoords.y << "\n";
-
-        continue;
-      }
 
       if(sq -> HasPiece()) {
         Coordinates relative_coord = sq -> GetRelative(pixelCoords);
@@ -171,9 +160,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
     playingAs = ((std::rand() % 2) == 0);
 
-    Board* board = new Board();
-
-    board -> PrintBoard();
+    boardG = new Board();
+    boardG -> PrintBoard();
 
     // Run the message loop.
     MSG msg;
@@ -186,9 +174,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         }
 
         // Simulate
-
-        Simulate(board);
-
+        Simulate();
 
         // Render
         StretchDIBits(hdc, 0, 0,

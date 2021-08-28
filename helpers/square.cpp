@@ -19,7 +19,9 @@ public:
 
     hasPiece = false;
 
-    color = (r%2 == c%2) ? whiteSq : blackSq;
+    isClicked = false;
+
+    color = (r%2 == c%2) ? blackSq : whiteSq;
   }
 
   Piece* GetPiece() {
@@ -30,13 +32,30 @@ public:
     return color;
   }
 
+  Coordinates GetPosition() {
+    return Coordinates{row, column};
+  }
+
   void SetPiece(Piece* p) {
     hasPiece = true;
     piece = p;
   }
 
-  void SetClicked() {
+  bool IsClicked() {
+    return isClicked;
+  }
+
+  bool ToggleClicked() {
+    std::cout << numberToLettter[column] << row+1 << "\n";
+    if(IsClicked()) {
+      isClicked = false;
+      return true;
+    }
+
+
     if(HasPiece()) isClicked = true;
+
+    return HasPiece();
   }
 
   bool HasPiece() {
