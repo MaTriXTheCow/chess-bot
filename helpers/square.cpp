@@ -6,11 +6,15 @@ private:
   int column;
 
   int color;
+  int defaultColor;
+  int toggleColor;
 
   Piece* piece;
 
   bool hasPiece;
   bool isClicked;
+
+  bool isHighlighted;
 
 public:
   Square(int r, int c) {
@@ -18,15 +22,16 @@ public:
     column = c;
 
     hasPiece = false;
-
     isClicked = false;
 
-    color = (r%2 == c%2) ? blackSq : whiteSq;
+    defaultColor = (r%2 == c%2) ? blackSq : whiteSq;
+    toggleColor = (defaultColor == whiteSq) ? 0xf9f788 : 0xb7cb44;
+
+    color = defaultColor;
   }
 
   Piece* GetPiece() {
     return piece;
-    
   }
 
   int GetColor() {
@@ -34,7 +39,7 @@ public:
   }
 
   Coordinates GetPosition() {
-    return Coordinates{row, column};
+    return Coordinates{column, row};
   }
 
   void SetPiece(Piece* p) {
@@ -42,22 +47,15 @@ public:
     piece = p;
   }
 
+  void ToggleColor() {
+    color = (color == defaultColor) ? toggleColor : defaultColor;
+  }
+
   bool IsClicked() {
     return isClicked;
   }
 
-  bool ToggleClicked() {
-    std::cout << numberToLettter[column] << row+1 << "\n";
-    if(IsClicked()) {
-      isClicked = false;
-      return true;
-    }
-
-
-    if(HasPiece()) isClicked = true;
-
-    return HasPiece();
-  }
+  bool ToggleClicked();
 
   bool HasPiece() {
     return hasPiece;

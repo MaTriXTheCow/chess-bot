@@ -3,7 +3,7 @@ struct Coordinates {
   int y;
 
   bool IsInBounds(int lowerX, int lowerY, int upperX, int upperY) {
-    return (x < upperX && y < upperY) && (x >= lowerX && x >= lowerY);
+    return (x < upperX && y < upperY) && (x >= lowerX && y >= lowerY);
   }
 
   bool operator==(Coordinates a) {

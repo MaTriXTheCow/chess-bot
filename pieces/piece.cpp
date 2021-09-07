@@ -23,6 +23,12 @@ private:
   bool color;
   Pixel** PPMimages[12];
 
+  Coordinates* legalMovesCache;
+  bool* legalMovesSuccededCache;
+  int legalMovesLastTurnCalled;
+
+  int maxMoveLen;
+
 public:
   Piece() {
     PPMimages[0] = reader -> ReadImage("images/pawn_white.ppm");
@@ -42,7 +48,16 @@ public:
 
     PPMimages[10] = reader -> ReadImage("images/king_white.ppm");
     PPMimages[11] = reader -> ReadImage("images/king_black.ppm");
+
+    legalMovesLastTurnCalled = -1;
   };
+
+  void AllocCache() {
+    maxMoveLen = GetMaxMovesLength(GetType());
+
+    legalMovesCache = (Coordinates*) malloc(maxMoveLen * sizeof(Coordinates));
+    legalMovesSuccededCache = (bool*) malloc(maxMoveLen * sizeof(bool));
+  }
 
   pieceType GetType() {
     return type;
@@ -71,6 +86,31 @@ public:
 
   void SetType(pieceType t) {
     type = t;
+
+    AllocCache();
+  }
+
+  void GetLegalMovesCache(Coordinates* legalMoves, bool* succeeded) {
+    std::cout << "Access from cache" << "\n";
+    std::cout << sizeof(Coordinates) << " " << maxMoveLen << " " << sizeof(Coordinates) * maxMoveLen << "\n";
+
+    memcpy(legalMoves, legalMovesCache, sizeof(Coordinates) * maxMoveLen);
+    memcpy(succeeded, legalMovesSuccededCache, sizeof(bool) * maxMoveLen);
+  }
+
+  void SetLegalMovesCache(Coordinates* legalMoves, bool* succeeded, int turn) {
+    memcpy(legalMovesCache, legalMoves, sizeof(Coordinates) * maxMoveLen);
+    memcpy(legalMovesSuccededCache, succeeded, sizeof(bool) * maxMoveLen);
+
+    legalMovesLastTurnCalled = turn;
+  }
+
+  void ToggleHighlightLegal();
+
+  int GetMaxMovesLength(pieceType p);
+
+  bool HasCacheForTurn(int turn) {
+    return turn == legalMovesLastTurnCalled;
   }
 
   virtual int DrawPixel(Coordinates pixelCoord) {
@@ -80,29 +120,23 @@ public:
 
     Pixel** pieceImage = PPMimages[type*2 + (int)(!color)];
 
-    bool isSquareClicked = GetSquare() -> IsClicked();
-
     int r = pieceImage[79-pixelCoord.y][pixelCoord.x].r;
     int g = pieceImage[79-pixelCoord.y][pixelCoord.x].g;
     int b = pieceImage[79-pixelCoord.y][pixelCoord.x].b;
 
-    if(IsTransparent(r,g,b)) {
-      int squareColor = GetSquare() -> GetColor();
-
-      if(isSquareClicked) {
-        if(squareColor == whiteSq) return 0xf9f788;
-
-        return 0xb7cb44;
-      }
-
-
-      return squareColor;
-    }
+    if(IsTransparent(r,g,b)) return GetSquare() -> GetColor();
 
     return (r << 16) + (g << 8) + b;
   }
 
-  bool isMoveLegal(Square* s);
+  virtual void GetLegalMoves(Coordinates *legalMoves, bool *succeeded) {
+    std::cout << "WARNING: THIS SHOULD NEVER BE PRINTED: " << legalMoves[0].x << " " << succeeded << "\n";
+  }
+
+  void Destroy() {
+    free(legalMovesCache);
+    free(legalMovesSuccededCache);
+  }
 
   static Piece* MakePieceFromChar(char pieceChar, bool colorPiece, Square* sq);
 };

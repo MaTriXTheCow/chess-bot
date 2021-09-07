@@ -25,8 +25,9 @@ public:
       }
     }
 
-    FILE *fp = fopen(path.c_str(), "rb");
-    if (!fp) return imageMap;
+    FILE *fp;
+    errno_t err = fopen_s(&fp, path.c_str(), "rb");
+    if (err != 0) return imageMap;
 
     int row = 0;
     int col = 0;

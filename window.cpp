@@ -2,8 +2,6 @@ const int blackSq = 0x769656;
 const int whiteSq = 0xEBEBD3;
 bool playingAs;
 
-char numberToLettter[8] = {'a','b','c','d','e','f','g','h'};
-
 // INCLUDES
 
 #include <tchar.h>
@@ -20,6 +18,9 @@ char numberToLettter[8] = {'a','b','c','d','e','f','g','h'};
 #include <map>
 
 // MY FILESW
+#include "helpers/boardDef.cpp"
+Board* boardG;
+
 #include "helpers/pixel.cpp"
 #include "helpers/coordinates.cpp"
 
@@ -29,7 +30,6 @@ char numberToLettter[8] = {'a','b','c','d','e','f','g','h'};
 #include "pieces/piece.cpp"
 
 #include "helpers/board.cpp"
-Board* boardG;
 
 #include "pieces/pawn.cpp"
 #include "pieces/rook.cpp"
@@ -39,6 +39,7 @@ Board* boardG;
 #include "pieces/king.cpp"
 
 #include "helpers/pieceExtra.cpp"
+#include "helpers/squareExtra.cpp"
 
 bool running = true;
 
@@ -81,9 +82,18 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         } break;
 
         case WM_LBUTTONUP: {
-          Square* clickedSq = boardG -> GetSquareFromCoord(Coordinates{GET_X_LPARAM(lParam), buffer_height - GET_Y_LPARAM(lParam)});
+          Square* clickedSq = boardG -> GetSquareFromCoordPixels(Coordinates{GET_X_LPARAM(lParam), buffer_height - GET_Y_LPARAM(lParam)});
+          Square* oldClickedSq = boardG -> GetClicked();
 
-          boardG -> SetClicked(clickedSq);
+          if(clickedSq == oldClickedSq) break; // If same square is clicked do nothing
+
+          if(boardG -> HasClicked()) oldClickedSq -> GetPiece() -> ToggleHighlightLegal(); // If there was a square clicked before, untoggle the legal-moves-highlights
+
+          if(!(boardG -> SetClicked(clickedSq))) break; // If click fails (square has no piece) break
+
+          clickedSq -> GetPiece() -> ToggleHighlightLegal();
+
+          std::cout << "Okay, I got here" << "\n";
 
         } break;
     }
@@ -99,7 +109,7 @@ inline void Simulate() {
   for(int y = 0; y < buffer_height; y++) {
     for(int x = 0; x < buffer_width; x++) {
       Coordinates pixelCoords = {x,y};
-      Square* sq = boardG -> GetSquareFromCoord(pixelCoords);
+      Square* sq = boardG -> GetSquareFromCoordPixels(pixelCoords);
       int sqClr = sq -> GetColor();
 
       if(sq -> HasPiece()) {
@@ -114,7 +124,7 @@ inline void Simulate() {
   }
 }
 
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow) {
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow) {
     // Register the window class.
     const TCHAR CLASS_NAME[]  = TEXT("ChessMainWindow");
     const TCHAR WINDOW_TITLE[] = TEXT("ChessBot Beta");
@@ -156,7 +166,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
     reader = new PPMImageReader();
 
-    srand(time(NULL));
+    srand((unsigned int) time(NULL));
 
     playingAs = ((std::rand() % 2) == 0);
 
@@ -167,7 +177,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     MSG msg;
 
     while(running) {
-
         while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
@@ -185,6 +194,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
           DIB_RGB_COLORS,
           SRCCOPY
         );
+
+        Sleep(100);
     }
 
     return 0;

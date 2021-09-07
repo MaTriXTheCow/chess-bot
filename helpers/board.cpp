@@ -6,7 +6,7 @@ private:
 
   unsigned int turn;
 
-  Square* clicked;
+  Square* currentClicked;
 
   void initBoard() {
     char startingBoard[8][8] = {
@@ -42,26 +42,46 @@ public:
   Board() {
     isCheck = false;
     isCheckMate = false;
-    turn = 1;
+    turn = 0;
 
-    clicked = nullptr;
+    currentClicked = nullptr;
 
     initBoard();
+  }
+
+  void Destroy() {
+    for(int i = 0; i < 8; i++) {
+      for(int j = 0; j < 8; j++) {
+        boardArray[i][j] -> GetPiece() -> Destroy();
+      }
+    }
   }
 
   Square* GetSquare(int row, int col) {
     return boardArray[row][col];
   }
 
+  unsigned int GetTurn() {
+    return turn;
+  }
+
+  bool IsKingChecked(bool color) {
+    
+  }
+
   bool HasPiece(int row, int col) {
     return GetSquare(row,col) -> HasPiece();
   }
 
-  void Move(Piece* piece, Square* destination) {
+  void Move(Piece* piece, Coordinates destination) {
 
   }
 
-  Square* GetSquareFromCoord(Coordinates pos) {
+  Square* GetSquareFromCoordBoard(Coordinates pos) {
+    return GetSquare(pos.y, pos.x);
+  }
+
+  Square* GetSquareFromCoordPixels(Coordinates pos) {
     int row = pos.y/80;
     int col = pos.x/80;
 
@@ -69,13 +89,19 @@ public:
   }
 
   Square* GetClicked() {
-    return clicked;
+    return currentClicked;
   }
 
-  void SetClicked(Square* sq) {
-    if(clicked != nullptr) clicked -> ToggleClicked();
+  bool SetClicked(Square* sq) {
+    if(currentClicked != nullptr) currentClicked -> ToggleClicked();
 
-    clicked = (sq -> ToggleClicked()) ? sq : nullptr;
+    currentClicked = (sq -> ToggleClicked()) ? sq : nullptr;
+
+    return currentClicked != nullptr;
+  }
+
+  bool HasClicked() {
+    return currentClicked != nullptr;
   }
 
   void PrintBoard() {
